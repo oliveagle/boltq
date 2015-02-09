@@ -86,7 +86,7 @@ func getTotalItemFromDB(db *bolt.DB) (int64, error) {
 		}
 		tmp, err := strconv.ParseInt(string(v), 10, 64)
 		if err != nil {
-			fmt.Printf("ERROR: parse count %v\n", err)
+			// log.Printf("ERROR: parse count %v\n", err)
 			return err
 		}
 
@@ -147,9 +147,9 @@ func (b *BoltQ) Enqueue(value []byte) (err error) {
 		switch b.onfull {
 		case ERROR_ON_FULL:
 			err = fmt.Errorf("Queue is full on size: %d >= %d", b.GetTotalItem(), b.max_queue_size)
-			// fmt.Println(err)
+			// log.Println(err)
 		case POP_ON_FULL:
-			// fmt.Println("pop_on_full: not implemented")
+			// log.Println("pop_on_full: not implemented")
 			// err = fmt.Errorf("pop_on_full: not implemented")
 			key := b.newKey()
 			err = b.db.Update(func(tx *bolt.Tx) error {
@@ -253,7 +253,7 @@ func (b *BoltQ) increaseTotalItem(tx *bolt.Tx) (err error) {
 	if tmp_count != nil {
 		tmp, err := strconv.ParseInt(string(tmp_count), 10, 64)
 		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
+			// log.Printf("ERROR: %v\n", err)
 			return err
 		}
 		b.total_item = tmp
@@ -271,7 +271,7 @@ func (b *BoltQ) decreaseTotalItem(tx *bolt.Tx) (err error) {
 	if tmp_count != nil {
 		tmp, err := strconv.ParseInt(string(tmp_count), 10, 64)
 		if err != nil {
-			fmt.Printf("ERROR: %v\n", err)
+			// log.Printf("ERROR: %v\n", err)
 			return err
 		}
 		b.total_item = tmp

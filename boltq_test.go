@@ -19,6 +19,7 @@ func teardown() {
 }
 
 func Test_boltq_another_instance_GetTotalItem_above_zero(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	q.Enqueue([]byte("value"))
@@ -39,6 +40,7 @@ func Test_boltq_another_instance_GetTotalItem_above_zero(t *testing.T) {
 }
 
 func Test_boltq_Enqueue_GetTotalItem_1(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	defer q.Close()
@@ -63,6 +65,7 @@ func Test_boltq_Enqueue_GetTotalItem_1(t *testing.T) {
 }
 
 func Test_boltq_Dequeue_GetTotalItem_0(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	defer q.Close()
@@ -83,6 +86,7 @@ func Test_boltq_Dequeue_GetTotalItem_0(t *testing.T) {
 }
 
 func Test_DequeueAck_NoError(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	defer q.Close()
@@ -102,6 +106,7 @@ func Test_DequeueAck_NoError(t *testing.T) {
 }
 
 func Test_DequeueAck_Error(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	defer q.Close()
@@ -124,6 +129,7 @@ func Test_DequeueAck_Error(t *testing.T) {
 }
 
 func Test_Full_On_Error(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	defer q.Close()
@@ -174,6 +180,7 @@ outer_loop:
 }
 
 func Test_Full_Pop(t *testing.T) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 100, POP_ON_FULL)
 	defer q.Close()
@@ -227,6 +234,7 @@ outer_loop:
 }
 
 func BenchmarkEnqueue(b *testing.B) {
+	teardown()
 
 	q, _ := NewBoltQ(queue_name, 1000000, ERROR_ON_FULL)
 	defer q.Close()
