@@ -28,10 +28,8 @@ import (
 )
 
 const (
-	// raise an error if the queue reached `max_queue_size`
-	// popout oldest item if queue size above `max_queue_size`
-	ERROR_ON_FULL = iota
-	POP_ON_FULL
+	ERROR_ON_FULL = iota // raise an error if the queue reached `max_queue_size`
+	POP_ON_FULL          // popout oldest item if queue size above `max_queue_size`
 )
 
 const (
