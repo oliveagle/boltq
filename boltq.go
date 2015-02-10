@@ -6,7 +6,7 @@
 // import "github.com/oliveagle/boltq"
 //
 // func main() {
-// 		q, err := boltq.NewBoltQ("test_q.queue", 1, boltq.ERROR_ON_FULL)
+// 		q, err := boltq.NewBoltQ("test_q.queue", 1000, boltq.ERROR_ON_FULL)
 //		defer q.Close()
 //
 //		q.Enqueue([]byte("value"))
@@ -190,10 +190,16 @@ func (b *BoltQ) Dequeue() (value []byte, err error) {
 		}
 		c := bkt.Cursor()
 		k, v := c.First()
+		// log.Printf("k: %v, v: %v\n", k, v)
+		if len(k) == 0 && len(v) == 0 {
+			return fmt.Errorf("Queue is empty")
+		}
+
 		err = bkt.Delete(k)
 		if err != nil {
 			return err
 		}
+
 		err = b.decreaseTotalItem(tx)
 		if err != nil {
 			return err
@@ -215,6 +221,10 @@ func (b *BoltQ) DequeueAck(ack func(value []byte) error) error {
 		}
 		c := bkt.Cursor()
 		k, v := c.First()
+		// log.Printf("k: %v, v: %v\n", k, v)
+		if len(k) == 0 && len(v) == 0 {
+			return fmt.Errorf("Queue is empty")
+		}
 
 		// ack here
 		err = ack(v)

@@ -105,6 +105,29 @@ func Test_DequeueAck_NoError(t *testing.T) {
 	teardown()
 }
 
+func Test_Dequeue_Empty(t *testing.T) {
+	teardown()
+
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	// q.Enqueue([]byte("value"))
+
+	value, err := q.Dequeue()
+	t.Log(value, err)
+	if err == nil {
+		t.Error("Dequeue empty no error")
+	}
+
+	cnt := q.GetTotalItem()
+	if cnt != 0 {
+		t.Errorf("TotalItem != 0, %v", cnt)
+	}
+	// t.Error("hhh")
+	teardown()
+}
+
+// make sure DequeueAck on error , it rollback item.
 func Test_DequeueAck_Error(t *testing.T) {
 	teardown()
 
@@ -125,6 +148,29 @@ func Test_DequeueAck_Error(t *testing.T) {
 	if cnt != 1 {
 		t.Errorf("TotalItem != 1, %v", cnt)
 	}
+	teardown()
+}
+
+func Test_DequeueAck_Empty(t *testing.T) {
+	teardown()
+
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	err := q.DequeueAck(func(v []byte) error {
+		t.Logf("v: %v", v)
+		return nil
+	})
+	t.Log(err)
+	if err == nil {
+		t.Error("Dequeue empty no error")
+	}
+
+	cnt := q.GetTotalItem()
+	if cnt != 0 {
+		t.Errorf("TotalItem != 0, %v", cnt)
+	}
+	// t.Error("hhh")
 	teardown()
 }
 
