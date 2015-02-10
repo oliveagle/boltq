@@ -20,7 +20,11 @@ func main() {
 	// queue now is full, enqueue another item will raise an error
 	err := q.Enqueue([]byte("value"))
 	fmt.Println(err)
-	
+
+	// check if queue is full
+	isFull := q.IsFull()
+	fmt.Println(q.Size() >= q.GetMaxQueueSize())
+
 	// dequeue
 	value, _ := q.Dequeue()
 	

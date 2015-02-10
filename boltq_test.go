@@ -31,7 +31,7 @@ func Test_boltq_another_instance_GetTotalItem_above_zero(t *testing.T) {
 	q2, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
 	defer q2.Close()
 
-	cnt := q2.GetTotalItem()
+	cnt := q2.Size()
 	if cnt != 3 {
 		t.Errorf("TotalItem != 3, %v", cnt)
 	}
@@ -47,7 +47,7 @@ func Test_boltq_Enqueue_GetTotalItem_1(t *testing.T) {
 
 	q.Enqueue([]byte("value"))
 
-	cnt := q.GetTotalItem()
+	cnt := q.Size()
 	if cnt != 1 {
 		t.Errorf("TotalItem != 1, %v", cnt)
 	}
@@ -55,7 +55,7 @@ func Test_boltq_Enqueue_GetTotalItem_1(t *testing.T) {
 	q.Enqueue([]byte("value"))
 	q.Enqueue([]byte("value"))
 	q.Enqueue([]byte("value"))
-	cnt = q.GetTotalItem()
+	cnt = q.Size()
 	if cnt != 4 {
 		t.Errorf("TotalItem != 4, %v", cnt)
 	}
@@ -76,7 +76,7 @@ func Test_boltq_Dequeue_GetTotalItem_0(t *testing.T) {
 		t.Errorf("different value: %s != value ", v)
 	}
 
-	cnt := q.GetTotalItem()
+	cnt := q.Size()
 	if cnt != 0 {
 		t.Errorf("TotalItem != 0, %v", cnt)
 	}
@@ -98,7 +98,7 @@ func Test_DequeueAck_NoError(t *testing.T) {
 		return nil
 	})
 
-	cnt := q.GetTotalItem()
+	cnt := q.Size()
 	if cnt != 0 {
 		t.Errorf("TotalItem != 0, %v", cnt)
 	}
@@ -119,7 +119,7 @@ func Test_Dequeue_Empty(t *testing.T) {
 		t.Error("Dequeue empty no error")
 	}
 
-	cnt := q.GetTotalItem()
+	cnt := q.Size()
 	if cnt != 0 {
 		t.Errorf("TotalItem != 0, %v", cnt)
 	}
@@ -144,7 +144,7 @@ func Test_DequeueAck_Error(t *testing.T) {
 		t.Error("no error is out")
 	}
 
-	cnt := q.GetTotalItem()
+	cnt := q.Size()
 	if cnt != 1 {
 		t.Errorf("TotalItem != 1, %v", cnt)
 	}
@@ -166,7 +166,7 @@ func Test_DequeueAck_Empty(t *testing.T) {
 		t.Error("Dequeue empty no error")
 	}
 
-	cnt := q.GetTotalItem()
+	cnt := q.Size()
 	if cnt != 0 {
 		t.Errorf("TotalItem != 0, %v", cnt)
 	}
@@ -210,11 +210,11 @@ outer_loop:
 		select {
 		case <-fulled:
 			// fmt.Println("Fulled")
-			t.Log("total_item: ", q.GetTotalItem())
+			t.Log("total_item: ", q.Size())
 			// t.Error("hahaha fulled")
 			break outer_loop
 		case <-tick:
-			t.Log("total_item: ", q.GetTotalItem())
+			t.Log("total_item: ", q.Size())
 			if time.Now().Sub(now) > 10*time.Second {
 				timed_out <- 0
 				t.Error("not fulled")
@@ -262,14 +262,14 @@ outer_loop:
 		select {
 		case <-fulled:
 			// fmt.Println("Fulled")
-			t.Log("total_item: ", q.GetTotalItem())
+			t.Log("total_item: ", q.Size())
 			t.Error("fulled")
 			break outer_loop
 		case <-tick:
-			t.Log("total_item: ", q.GetTotalItem())
+			t.Log("total_item: ", q.Size())
 			if time.Now().Sub(now) > 2*time.Second {
 				timed_out <- 0
-				t.Logf("not fulled, total_count: %d", q.GetTotalItem())
+				t.Logf("not fulled, total_count: %d", q.Size())
 				break outer_loop
 			}
 		}
@@ -287,6 +287,21 @@ func BenchmarkEnqueue(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		q.Enqueue([]byte("value"))
+	}
+	teardown()
+}
+
+func BenchmarkEnqueuePop(b *testing.B) {
+	teardown()
+
+	q, _ := NewBoltQ(queue_name, 100, POP_ON_FULL)
+	defer q.Close()
+
+	for i := 0; i < b.N; i++ {
+		err := q.Enqueue([]byte("value"))
+		if err != nil {
+			b.Error("should not raise any error here")
+		}
 	}
 	teardown()
 }

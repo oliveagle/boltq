@@ -103,12 +103,16 @@ func (b *BoltQ) Close() {
 	b.db.Close()
 }
 
-func (b *BoltQ) GetTotalItem() int64 {
+func (b *BoltQ) Size() int64 {
 	return b.total_item
 }
 
 func (b *BoltQ) IsFull() bool {
-	return int64(b.total_item) >= b.max_queue_size
+	return b.total_item >= b.max_queue_size
+}
+
+func (b *BoltQ) GetMaxQueueSize() int64 {
+	return b.max_queue_size
 }
 
 func (b *BoltQ) SetMaxQueueSize(size int64) {
@@ -146,7 +150,7 @@ func (b *BoltQ) Enqueue(value []byte) (err error) {
 	} else {
 		switch b.onfull {
 		case ERROR_ON_FULL:
-			err = fmt.Errorf("Queue is full on size: %d >= %d", b.GetTotalItem(), b.max_queue_size)
+			err = fmt.Errorf("Queue is full on size: %d >= %d", b.Size(), b.max_queue_size)
 			// log.Println(err)
 		case POP_ON_FULL:
 			// log.Println("pop_on_full: not implemented")
