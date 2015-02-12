@@ -214,37 +214,6 @@ func (b *BoltQ) Dequeue() (value []byte, err error) {
 	return value, err
 }
 
-func (b *BoltQ) DequeueAck(ack func(value []byte) error) error {
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-
-	return b.db.Update(func(tx *bolt.Tx) error {
-		bkt, err := tx.CreateBucketIfNotExists([]byte(BUCKET_QUEUE))
-		if err != nil {
-			return err
-		}
-		c := bkt.Cursor()
-		k, v := c.First()
-		// log.Printf("k: %v, v: %v\n", k, v)
-		if len(k) == 0 && len(v) == 0 {
-			return fmt.Errorf("Queue is empty")
-		}
-
-		// ack here
-		err = ack(v)
-		if err != nil {
-			return err
-		}
-
-		// acked, delete it
-		err = bkt.Delete(k)
-		if err != nil {
-			return err
-		}
-		return b.decreaseTotalItem(tx)
-	})
-}
-
 func (b *BoltQ) newKey() []byte {
 	b.keylock.Lock()
 	defer b.keylock.Unlock()

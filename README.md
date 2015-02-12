@@ -33,16 +33,3 @@ func main() {
 	
 }
 ```
-
-some times we need to guarantee that dequeued item should be processed. 
-```javascript
-
-err := q.Dequeue(func(value []byte) error {
-	if process_success {
-		return nil
-	} else {
-		// if error returned, item will not be dequeued.
-		return t.Error("failed to process")
-	}
-})
-```
