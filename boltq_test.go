@@ -158,6 +158,59 @@ outer_loop:
 	teardown()
 }
 
+func Test_Pop_And_Dequeue(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	q.Enqueue([]byte("1"))
+	q.Enqueue([]byte("2"))
+	q.Enqueue([]byte("3"))
+
+	v, _ := q.Dequeue()
+	t.Logf("%s", v)
+	if fmt.Sprintf("%s", v) != "1" {
+		t.Error("Dequeue Error")
+	}
+
+	v, _ = q.Pop()
+	t.Logf("%s", v)
+	if fmt.Sprintf("%s", v) != "3" {
+		t.Error("Pop Error")
+	}
+
+	// t.Error("---")
+}
+
+func Test_Push_And_Pop(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	q.Push([]byte("1"))
+	q.Push([]byte("2"))
+	q.Push([]byte("3"))
+
+	v, _ := q.Pop()
+	t.Logf("%s", v)
+	if fmt.Sprintf("%s", v) != "3" {
+		t.Error("Pop Error")
+	}
+
+	v, _ = q.Pop()
+	t.Logf("%s", v)
+	if fmt.Sprintf("%s", v) != "2" {
+		t.Error("Pop Error")
+	}
+
+	v, _ = q.Pop()
+	t.Logf("%s", v)
+	if fmt.Sprintf("%s", v) != "1" {
+		t.Error("Pop Error")
+	}
+	// t.Error("---")
+}
+
 func Test_Full_Pop(t *testing.T) {
 	teardown()
 

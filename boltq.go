@@ -121,7 +121,26 @@ func (b *BoltQ) SetMaxQueueSize(size int64) {
 	}
 }
 
+func (b *BoltQ) Push(value []byte) (err error) {
+	return b.push(value)
+}
+
 func (b *BoltQ) Enqueue(value []byte) (err error) {
+	return b.push(value)
+}
+
+func (b *BoltQ) Dequeue() (value []byte, err error) {
+	return b.pop(true)
+}
+
+func (b *BoltQ) Pop() (value []byte, err error) {
+	return b.pop(false)
+}
+func (b *BoltQ) PopBottom() (value []byte, err error) {
+	return b.pop(true)
+}
+
+func (b *BoltQ) push(value []byte) (err error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -183,7 +202,8 @@ func (b *BoltQ) Enqueue(value []byte) (err error) {
 	return err
 }
 
-func (b *BoltQ) Dequeue() (value []byte, err error) {
+func (b *BoltQ) pop(bottom bool) (value []byte, err error) {
+	// pop from bottom when bottom is true, otherwise pop from top.
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -193,7 +213,13 @@ func (b *BoltQ) Dequeue() (value []byte, err error) {
 			return err
 		}
 		c := bkt.Cursor()
-		k, v := c.First()
+		var k []byte
+		var v []byte
+		if bottom == false {
+			k, v = c.Last()
+		} else {
+			k, v = c.First()
+		}
 		// log.Printf("k: %v, v: %v\n", k, v)
 		if len(k) == 0 && len(v) == 0 {
 			return fmt.Errorf("Queue is empty")
