@@ -31,5 +31,31 @@ func main() {
 	// dequeue an empty queue will raise an error
 	_, err = q.Dequeue()
 	
+
+	// work like a stack
+	q.Push([]byte("value"))
+	value, _ := q.Pop()
+
+	// can also pop from stack bottom
+	value, _ := q.PopBottom()
+
+	// pop many item with a filter func, the function will return 
+	// once filter function returned the very first `false`
+	values, _ := q.PopMany(func(v []byte) bool {
+		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
+		if i > 1 {
+			return true
+		}
+		return false
+	})
+
+	// pop many also have a from-bottom version.
+	values, _ := q.PopManyBottom(func(v []byte) bool {
+		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
+		if i > 1 {
+			return true
+		}
+		return false
+	})
 }
 ```

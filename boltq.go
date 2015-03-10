@@ -240,6 +240,70 @@ func (b *BoltQ) pop(bottom bool) (value []byte, err error) {
 	return value, err
 }
 
+func (b *BoltQ) PopMany(fn func([]byte) bool) (values [][]byte, err error) {
+	return b.popmany(false, fn)
+}
+
+func (b *BoltQ) PopManyBottom(fn func([]byte) bool) (values [][]byte, err error) {
+	return b.popmany(true, fn)
+}
+
+func (b *BoltQ) popmany(bottom bool, fn func([]byte) bool) (values [][]byte, err error) {
+	// pop from bottom when bottom is true, otherwise pop from top.
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	looping := false
+
+	err = b.db.Update(func(tx *bolt.Tx) error {
+		bkt, err := tx.CreateBucketIfNotExists([]byte(BUCKET_QUEUE))
+		if err != nil {
+			return err
+		}
+		c := bkt.Cursor()
+		var k []byte
+		var v []byte
+		if bottom == false {
+			k, v = c.Last()
+		} else {
+			k, v = c.First()
+		}
+	loop:
+		// log.Printf("k: %v, v: %v\n", k, v)
+		if len(k) == 0 && len(v) == 0 {
+			if looping {
+				return nil
+			} else {
+				return fmt.Errorf("Queue is empty")
+			}
+		}
+
+		matched := fn(v)
+		if matched {
+			values = append(values, v)
+		} else {
+			return nil
+		}
+
+		err = bkt.Delete(k)
+		if err != nil {
+			return err
+		}
+
+		err = b.decreaseTotalItem(tx)
+		if err != nil {
+			return err
+		}
+		if bottom == false {
+			k, v = c.Prev()
+		} else {
+			k, v = c.Next()
+		}
+		looping = true
+		goto loop
+	})
+	return
+}
+
 func (b *BoltQ) newKey() []byte {
 	b.keylock.Lock()
 	defer b.keylock.Unlock()

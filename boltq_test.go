@@ -5,6 +5,7 @@ import (
 	// "github.com/boltdb/bolt"
 	// "github.com/kr/pretty"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -263,6 +264,101 @@ outer_loop:
 
 	// t.Error("---")
 	teardown()
+}
+
+func Test_popmany_false(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	q.Push([]byte("1"))
+	q.Push([]byte("2"))
+	q.Push([]byte("3"))
+
+	values, _ := q.popmany(false, func(v []byte) bool {
+		return false
+	})
+	if len(values) != 0 {
+		t.Error("should not pop any thing")
+	}
+	if q.Size() != 3 {
+		t.Error("should not pop any thing")
+	}
+}
+
+func Test_popmany_true_all(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	q.Push([]byte("1"))
+	q.Push([]byte("2"))
+	q.Push([]byte("3"))
+
+	q.popmany(false, func(v []byte) bool {
+		return true
+	})
+	if q.Size() != 0 {
+		t.Error("should pop all")
+	}
+}
+
+func Test_popmany_true_partial_top(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	q.Push([]byte("1"))
+	q.Push([]byte("2"))
+	q.Push([]byte("3"))
+
+	q.PopMany(func(v []byte) bool {
+		fmt.Println(fmt.Sprintf("%s", v))
+		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
+		fmt.Println(i)
+		if i > 1 {
+			return true
+		}
+		// when popmany saw the first `false`, it will break and return
+		return false
+	})
+	if q.Size() != 1 {
+		t.Log(q.Size())
+		t.Error("should pop 2 items only")
+	}
+	v, _ := q.Pop()
+	if fmt.Sprintf("%s", v) != "1" {
+		t.Error("pop wrong direction")
+	}
+}
+
+func Test_popmany_true_partial_bottom(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	q.Push([]byte("1"))
+	q.Push([]byte("2"))
+	q.Push([]byte("3"))
+
+	q.PopManyBottom(func(v []byte) bool {
+		fmt.Println(fmt.Sprintf("%s", v))
+		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
+		fmt.Println(i)
+		if i < 3 {
+			return true
+		}
+		// when popmany saw the first `false`, it will break and return
+		return false
+	})
+	if q.Size() != 1 {
+		t.Log(q.Size())
+		t.Error("should pop 2 items only")
+	}
+	v, _ := q.Pop()
+	if fmt.Sprintf("%s", v) != "3" {
+		t.Error("pop wrong direction")
+	}
 }
 
 func BenchmarkEnqueue(b *testing.B) {
