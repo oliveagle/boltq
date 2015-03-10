@@ -275,12 +275,9 @@ func Test_popmany_false(t *testing.T) {
 	q.Push([]byte("2"))
 	q.Push([]byte("3"))
 
-	values, _ := q.popmany(false, func(v []byte) bool {
+	q.popmany(false, func(v []byte) bool {
 		return false
 	})
-	if len(values) != 0 {
-		t.Error("should not pop any thing")
-	}
 	if q.Size() != 3 {
 		t.Error("should not pop any thing")
 	}
@@ -312,7 +309,7 @@ func Test_popmany_true_partial_top(t *testing.T) {
 	q.Push([]byte("2"))
 	q.Push([]byte("3"))
 
-	q.PopMany(func(v []byte) bool {
+	err := q.PopMany(func(v []byte) bool {
 		fmt.Println(fmt.Sprintf("%s", v))
 		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
 		fmt.Println(i)
@@ -322,6 +319,9 @@ func Test_popmany_true_partial_top(t *testing.T) {
 		// when popmany saw the first `false`, it will break and return
 		return false
 	})
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
 	if q.Size() != 1 {
 		t.Log(q.Size())
 		t.Error("should pop 2 items only")
@@ -341,7 +341,7 @@ func Test_popmany_true_partial_bottom(t *testing.T) {
 	q.Push([]byte("2"))
 	q.Push([]byte("3"))
 
-	q.PopManyBottom(func(v []byte) bool {
+	err := q.PopManyBottom(func(v []byte) bool {
 		fmt.Println(fmt.Sprintf("%s", v))
 		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
 		fmt.Println(i)
@@ -351,6 +351,9 @@ func Test_popmany_true_partial_bottom(t *testing.T) {
 		// when popmany saw the first `false`, it will break and return
 		return false
 	})
+	if err != nil {
+		t.Errorf("err: %s", err)
+	}
 	if q.Size() != 1 {
 		t.Log(q.Size())
 		t.Error("should pop 2 items only")

@@ -40,8 +40,10 @@ func main() {
 	value, _ := q.PopBottom()
 
 	// pop many item with a filter func, the function will return 
-	// once filter function returned the very first `false`
-	values, _ := q.PopMany(func(v []byte) bool {
+	// once filter function returned the very first `false` and
+	// all values with true returned by filter function will be deleted
+	// from queue
+	err := q.PopMany(func(v []byte) bool {
 		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
 		if i > 1 {
 			return true
@@ -50,7 +52,7 @@ func main() {
 	})
 
 	// pop many also have a from-bottom version.
-	values, _ := q.PopManyBottom(func(v []byte) bool {
+	err := q.PopManyBottom(func(v []byte) bool {
 		i, _ := strconv.Atoi(fmt.Sprintf("%s", v))
 		if i > 1 {
 			return true

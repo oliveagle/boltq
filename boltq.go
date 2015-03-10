@@ -240,21 +240,21 @@ func (b *BoltQ) pop(bottom bool) (value []byte, err error) {
 	return value, err
 }
 
-func (b *BoltQ) PopMany(fn func([]byte) bool) (values [][]byte, err error) {
+func (b *BoltQ) PopMany(fn func([]byte) bool) error {
 	return b.popmany(false, fn)
 }
 
-func (b *BoltQ) PopManyBottom(fn func([]byte) bool) (values [][]byte, err error) {
+func (b *BoltQ) PopManyBottom(fn func([]byte) bool) error {
 	return b.popmany(true, fn)
 }
 
-func (b *BoltQ) popmany(bottom bool, fn func([]byte) bool) (values [][]byte, err error) {
+func (b *BoltQ) popmany(bottom bool, fn func([]byte) bool) error {
 	// pop from bottom when bottom is true, otherwise pop from top.
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	looping := false
 
-	err = b.db.Update(func(tx *bolt.Tx) error {
+	err := b.db.Update(func(tx *bolt.Tx) error {
 		bkt, err := tx.CreateBucketIfNotExists([]byte(BUCKET_QUEUE))
 		if err != nil {
 			return err
@@ -278,9 +278,7 @@ func (b *BoltQ) popmany(bottom bool, fn func([]byte) bool) (values [][]byte, err
 		}
 
 		matched := fn(v)
-		if matched {
-			values = append(values, v)
-		} else {
+		if matched == false {
 			return nil
 		}
 
@@ -301,7 +299,7 @@ func (b *BoltQ) popmany(bottom bool, fn func([]byte) bool) (values [][]byte, err
 		looping = true
 		goto loop
 	})
-	return
+	return err
 }
 
 func (b *BoltQ) newKey() []byte {
