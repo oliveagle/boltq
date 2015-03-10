@@ -332,6 +332,20 @@ func Test_popmany_true_partial_top(t *testing.T) {
 	}
 }
 
+func Test_popmany_empty(t *testing.T) {
+	teardown()
+	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
+	defer q.Close()
+
+	err := q.PopMany(func(v []byte) bool {
+		t.Error("should not come to here.")
+		return true
+	})
+	if err == nil || err.Error() != "Queue is empty" {
+		t.Errorf("should raise Queue is Empty error")
+	}
+}
+
 func Test_popmany_true_partial_bottom(t *testing.T) {
 	teardown()
 	q, _ := NewBoltQ(queue_name, 100, ERROR_ON_FULL)
